@@ -3,4 +3,4 @@
 
 # Ignore Gradle build output directory
 build
-./jojo/results.txt
+./app/results.txt

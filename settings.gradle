@@ -8,4 +8,4 @@
  */
 
 rootProject.name = 'wordcounter'
-include('jojo')
+include('app')
