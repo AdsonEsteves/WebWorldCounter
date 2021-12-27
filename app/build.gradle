@@ -24,10 +24,31 @@ dependencies {
     implementation 'com.google.guava:guava:29.0-jre'
 
     // jsoup HTML parser library @ https://jsoup.org/
-    implementation 'org.jsoup:jsoup:1.14.1'
+    implementation 'org.jsoup:jsoup:1.14.3'
 
     // https://mvnrepository.com/artifact/com.fasterxml.jackson.core/jackson-databind
     implementation 'com.fasterxml.jackson.core:jackson-databind:2.13.0'
+
+    // https://mvnrepository.com/artifact/net.sourceforge.htmlunit/htmlunit
+    implementation 'net.sourceforge.htmlunit:htmlunit:2.54.0'
+
+    implementation 'com.google.apis:google-api-services-searchconsole:v1-rev20211026-1.32.1'
+
+    // https://mvnrepository.com/artifact/com.google.http-client/google-http-client-jackson2
+    implementation 'com.google.http-client:google-http-client-jackson2:1.40.1'
+
+
+    // https://mvnrepository.com/artifact/com.google.apis/google-api-services-customsearch
+    implementation 'com.google.apis:google-api-services-customsearch:v1-rev86-1.25.0'
+
+    // https://mvnrepository.com/artifact/com.google.guava/guava
+    implementation 'com.google.guava:guava:31.0.1-jre'
+
+    // https://mvnrepository.com/artifact/org.knowm.xchart/xchart
+    implementation 'org.knowm.xchart:xchart:3.8.1'
+
+    // https://mvnrepository.com/artifact/org.jfree/jfreechart
+    implementation 'org.jfree:jfreechart:1.5.3'
 
 }
 

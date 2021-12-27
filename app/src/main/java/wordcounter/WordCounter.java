@@ -3,6 +3,8 @@
  */
 package wordcounter;
 
+import java.awt.Color;
+import java.awt.Desktop;
 import java.awt.Dimension;
 import java.awt.event.ActionEvent;
 import java.io.File;
@@ -14,14 +16,18 @@ import java.nio.charset.Charset;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.Comparator;
 import java.util.HashMap;
+import java.util.Iterator;
 import java.util.LinkedHashMap;
 import java.util.LinkedList;
 import java.util.List;
+import java.util.Locale;
 import java.util.Map;
 import java.util.Map.Entry;
 import java.util.regex.Matcher;
@@ -29,6 +35,7 @@ import java.util.regex.Pattern;
 import java.util.stream.Stream;
 
 import javax.swing.AbstractAction;
+import javax.swing.BoxLayout;
 import javax.swing.JButton;
 import javax.swing.JFrame;
 import javax.swing.JLabel;
@@ -44,12 +51,16 @@ import javax.swing.border.EtchedBorder;
 import javax.swing.border.TitledBorder;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.gargoylesoftware.htmlunit.BrowserVersion;
+import com.gargoylesoftware.htmlunit.NicelyResynchronizingAjaxController;
+import com.gargoylesoftware.htmlunit.WebClient;
+import com.gargoylesoftware.htmlunit.html.HtmlAnchor;
+import com.gargoylesoftware.htmlunit.html.HtmlPage;
+import com.gargoylesoftware.htmlunit.javascript.JavaScriptEngine;
 
 import org.jsoup.Connection;
 import org.jsoup.Jsoup;
 import org.jsoup.nodes.Document;
-import org.jsoup.nodes.Element;
-import org.jsoup.select.Elements;
 
 public class WordCounter {
     // static String saveFolder = "C:\\Users\\shina\\Desktop\\";
@@ -61,18 +72,65 @@ public class WordCounter {
     static JTextField searchText = new JTextField("Celulares em 2022");
     static JTextArea display = new JTextArea(25, 65);
     static JLabel label = new JLabel("");
+    static JLabel textLabel = new JLabel();
     static List<String> usedLinks = new ArrayList<>();
     static List<String> stopWords = new ArrayList<>();
+    static JButton openFinalFile = new JButton("Abrir Resultados");
+    static JLabel mesesLabel = new JLabel("Periodos em meses");
+    static JTextField mesesField = new JTextField("1");
+    static JLabel periodosLabel = new JLabel("Numero de Periodos");
+    static JTextField periodosField = new JTextField("1");
+    static JLabel resultadosLabel = new JLabel("Resultados por período");
+    static JTextField resultadosField = new JTextField("10");
+    static JLabel niveisLabel = new JLabel("Niveis de página a mais");
+    static JTextField niveisField = new JTextField("0");
+    static JLabel twLabel = new JLabel("tw");
+    static JTextField twField = new JTextField("0.05");
 
     public static void main(String[] args) throws Exception {
         loadstopWords();
         screen();
+
+        // TODO
+        // Capturar as seguintes variaveis pelo usuários:
+        // periodos(meses),
+        // numerodevezes,
+        // numeroderesultados.
+        // Opcao: Pegar apenas os de hoje
+        // Pega todas as paginas dentro do período estipulado pelo numero de vezes
+        // decidido
+        // Calcula DoD e DoV para cada período para cada palavra
+
     }
 
     public static void screen() {
 
         JPanel middlePanel = new JPanel();
-        middlePanel.setBorder(new TitledBorder(new EtchedBorder(), "Display Area"));
+        middlePanel.setBorder(new TitledBorder(new EtchedBorder(), "Options"));
+        middlePanel.setLayout(new BoxLayout(middlePanel, BoxLayout.Y_AXIS));
+
+        JPanel optionsPanel = new JPanel();
+
+        mesesField.setPreferredSize(new Dimension(30, 20));
+
+        periodosField.setPreferredSize(new Dimension(30, 20));
+
+        resultadosField.setPreferredSize(new Dimension(30, 20));
+        niveisField.setPreferredSize(new Dimension(30, 20));
+
+        // JTextPane textPane = new JTextPane();
+        // textPane.setText("");
+        // textPane.setPreferredSize(new Dimension(70, 10));
+
+        JPanel textPane = new JPanel();
+        textPane.setLayout(new BoxLayout(textPane, BoxLayout.LINE_AXIS));
+        textLabel.setText("Fortes Sinais");
+        textLabel.setPreferredSize(new Dimension(70, 100));
+        textPane.add(textLabel);
+
+        openFinalFile.setBackground(new Color(255, 255, 255));
+        openFinalFile.setForeground(new Color(0, 0, 0));
+        openFinalFile.setEnabled(false);
 
         // create the middle panel components
 
@@ -95,7 +153,19 @@ public class WordCounter {
         });
 
         // Add Textarea in to middle panel
-        middlePanel.add(scroll);
+        // middlePanel.add(scroll);
+        optionsPanel.add(mesesLabel);
+        optionsPanel.add(mesesField);
+        optionsPanel.add(periodosLabel);
+        optionsPanel.add(periodosField);
+        optionsPanel.add(resultadosLabel);
+        optionsPanel.add(resultadosField);
+        optionsPanel.add(niveisLabel);
+        optionsPanel.add(niveisField);
+        optionsPanel.add(twLabel);
+        optionsPanel.add(twField);
+        middlePanel.add(optionsPanel);
+        middlePanel.add(textPane);
 
         searchPanel.add(searchText);
         searchPanel.add(botaoBusca);
@@ -105,19 +175,23 @@ public class WordCounter {
 
         mainPanel.add(searchPanel);
         mainPanel.add(resultsPanel);
+        mainPanel.add(openFinalFile);
 
         frame.add(mainPanel);
         frame.setVisible(true);
         frame.setDefaultCloseOperation(WindowConstants.EXIT_ON_CLOSE);
 
-        frame.setPreferredSize(new Dimension(800, 600));
+        frame.setPreferredSize(new Dimension(800, 300));
         mainPanel.setPreferredSize(new Dimension(800, 600));
         searchPanel.setPreferredSize(new Dimension(800, 40));
-        resultsPanel.setPreferredSize(new Dimension(800, 500));
+        resultsPanel.setPreferredSize(new Dimension(800, 160));
+        middlePanel.setPreferredSize(new Dimension(750, 150));
         // display.setPreferredSize(new Dimension(730, 400));
         searchText.setPreferredSize(new Dimension(300, 20));
 
         resultsPanel.setLocation(0, 100);
+        frame.pack();
+        frame.setLocationRelativeTo(null);
         reload();
     }
 
@@ -133,14 +207,14 @@ public class WordCounter {
 
     public static void addTextToDisplay(String txt) {
         SwingUtilities.invokeLater(() -> {
-            display.setText(display.getText() + txt);
+            textLabel.setText(textLabel.getText() + txt);
             // reload();
         });
     }
 
     public static void changeDisplayText(String txt) {
         SwingUtilities.invokeLater(() -> {
-            display.setText(txt);
+            textLabel.setText(txt);
         });
     }
 
@@ -153,19 +227,41 @@ public class WordCounter {
             label.setText("Baixando");
         });
 
-        List<String> links = google_results(searchText.getText(), 10);
+        Map<Integer, List<String>> mappedLinks = new LinkedHashMap<>();
+        Map<Integer, Map<String, Map<String, Integer>>> mappedwords = new LinkedHashMap<>();
 
-        usedLinks.clear();
+        LocalDateTime today = LocalDateTime.now();
+        DateTimeFormatter formmat1 = DateTimeFormatter.ofPattern("MM/dd/yyyy", Locale.ENGLISH);
+        LocalDateTime newDate = today;
 
-        wordmap = returnLinksOnPage(wordmap, links, 1, stopWords);
-        wordmap = sortByComparator(wordmap, false);
-        // new SearchWorker(wordmap).execute();
+        for (int i = 0; i < Integer.parseInt(periodosField.getText()); i++) {
+
+            wordmap.clear();
+            LocalDateTime last6 = newDate.minusMonths(Integer.parseInt(mesesField.getText()));
+
+            // String timePeriod = formmat1.format(newDate) + " to " +
+            // formmat1.format(last6);
+            System.out.println("Baixando de " + formmat1.format(last6) + " a " + formmat1.format(newDate));
+            List<String> links = google_results(searchText.getText(), Integer.parseInt(resultadosField.getText()),
+                    formmat1.format(last6), formmat1.format(newDate));
+
+            mappedLinks.put(i, links);
+
+            usedLinks.clear();
+            wordmap = returnLinksOnPage(wordmap, links, Integer.parseInt(niveisField.getText()), stopWords);
+            wordmap = sortByComparator(wordmap, false);
+            mappedwords.put(i, new HashMap<String, Map<String, Integer>>(wordmap));
+            // new SearchWorker(wordmap).execute();
+            newDate = last6;
+
+        }
+        CalculateFrequency.calculate(mappedwords, mappedLinks, Double.parseDouble(twField.getText()));
         printWordCoocurence(wordmap);
     }
 
     private static List<String> loadstopWords() {
 
-        try (Stream<Path> paths = Files.walk(Paths.get("../stopwords"))) {
+        try (Stream<Path> paths = Files.walk(Paths.get("./stopwords"))) {
             paths.filter(Files::isRegularFile).forEach(WordCounter::convert);
         } catch (Exception e) {
             e.printStackTrace();
@@ -200,7 +296,7 @@ public class WordCounter {
             usedLinks.add(URL);
             if (URL.contains("google.com"))
                 continue;
-            System.out.println("\n\n Baixando o html: " + URL);
+            // System.out.println("\n\n Baixando o html: " + URL);
             changeDisplayText("\n\n Baixando o html: " + URL);
             try {
                 String html = getHTML2(URL);
@@ -212,16 +308,16 @@ public class WordCounter {
                         if (!allMatches.contains(m.group()) && !usedLinks.contains(m.group())) {
                             // allMatches.add(m.group().replaceAll("(\")|(>)|( )", ""));
                             allMatches.add(m.group());
-                            System.out.println(m.group());
+                            // System.out.println(m.group());
                         }
                     }
                     wordmap = returnLinksOnPage(wordmap, allMatches, nivel - 1, stopWords);
                 }
                 html = Jsoup.parse(html).text();
-                html = html.replaceAll("[^\\p{L} ]", "").toLowerCase();
+                html = html.replaceAll("[^\\p{L} ]", "").replaceAll("[,.]", "").toLowerCase();
                 String[] todasAsPalavrasDoSite = html.split(" ");
 
-                System.out.println("Contando palavras");
+                // System.out.println("Contando palavras");
                 addTextToDisplay("\nContando palavras");
                 SwingUtilities.invokeLater(() -> {
                     label.setText("Contando Palavras");
@@ -256,32 +352,51 @@ public class WordCounter {
         return wordmap;
     }
 
-    public static List<String> google_results(String keyword, int no_of_results) throws Exception {
+    public static List<String> google_results(String keyword, int no_of_results, String oldDate, String newDate)
+            throws Exception {
         List<String> searchedLinks = new ArrayList<>();
 
         // Replace space by + in the keyword as in the google search url
-        keyword = keyword.replace(" ", "+");
+        // keyword = keyword.replace(" ", "+");
         String query = URLEncoder.encode(keyword, "UTF8");
-        String url = "https://www.google.com/search?q=" + query + "&num=" + String.valueOf(no_of_results);
+        boolean hasDate = (oldDate == null || oldDate == "" || newDate == null || newDate == "");
+        String date_query = hasDate ? ""
+                : "&tbs=" + URLEncoder.encode("cdr:1,cd_min:" + oldDate + ",cd_max:" + newDate, "UTF8");
+        String url = "https://www.google.com/search?q=" + query + date_query + "&num=" + String.valueOf(no_of_results);
         // Connect to the url and obain HTML response
-        Document doc = Jsoup.connect(url).userAgent("Mozilla").timeout(5000).get();
-        // System.out.println(doc.body().html());
-        // parsing HTML after examining DOM
-        Elements els = doc.select("a[href]");
-        for (Element el : els) {
-            // Print title, site and abstract
-            System.out.println(el.text());
-            String temp = el.attr("href");
-            if (temp.startsWith("/url?q=")) {
-                // use regex to get domain name
-                String link = temp.replace("/url?q=", "").replaceAll("&sa=(.+)", "");
-                if (!searchedLinks.contains(link)) {
-                    searchedLinks.add(link);
-                    System.out.println(link);
-                }
+        WebClient wc = new WebClient(BrowserVersion.FIREFOX);
+        wc.getOptions().setThrowExceptionOnScriptError(false);
+        wc.setJavaScriptTimeout(10000);
+        wc.getOptions().setJavaScriptEnabled(true);
+        wc.setAjaxController(new NicelyResynchronizingAjaxController());
+        wc.getOptions().setTimeout(10000);
+        wc.waitForBackgroundJavaScript(3000);
+        JavaScriptEngine engine = (JavaScriptEngine) wc.getJavaScriptEngine();
+        engine.holdPosponedActions();
+        HtmlPage page = (HtmlPage) wc.getPage(url);
+        List<Object> body = page.getByXPath("//div[@class='g']//a");
+        System.out.println(url);
+        for (Iterator iter = body.iterator(); iter.hasNext();) {
+            HtmlAnchor anchor = (HtmlAnchor) iter.next();
+            if (isSkipLink(anchor)) {
+                continue;
             }
+            // System.out.println(anchor.getHrefAttribute());
+            searchedLinks.add(anchor.getHrefAttribute());
         }
         return searchedLinks;
+    }
+
+    /**
+     * Decide if this link has to be processed.
+     *
+     * @param anchor link
+     * @return true if link has to be omitted, false if is to be processed
+     */
+    private static boolean isSkipLink(HtmlAnchor anchor) {
+
+        return anchor.getHrefAttribute().startsWith("/") || anchor.getHrefAttribute().startsWith("#")
+                || anchor.getHrefAttribute().indexOf("/search?q=cache:") > 0;
     }
 
     public static String getHTML2(String URL) throws IOException {
@@ -336,10 +451,8 @@ public class WordCounter {
                 int count = entry2.getValue();
                 sb.append(URL + "-> " + count + "\n");
             }
-            // addTextToDisplay();
         }
         fileLines.add(sb.toString());
-        // addTextToDisplay("\n" + sb.toString());
 
         try {
             givenWritingStringToFile_whenUsingPrintWriter_thenCorrect(printTxT, fileLines);
@@ -349,10 +462,23 @@ public class WordCounter {
         }
 
         addTextToDisplay("acabou");
-        // });
 
         try {
             System.out.println("Escrito arquivo em " + printTxT.getCanonicalPath());
+            openFinalFile.setAction(new AbstractAction("Abrir Resultados") {
+
+                @Override
+                public void actionPerformed(ActionEvent e) {
+                    try {
+                        Desktop.getDesktop().edit(printTxT);
+                    } catch (IOException e1) {
+                        // TODO Auto-generated catch block
+                        e1.printStackTrace();
+                    }
+                }
+
+            });
+            openFinalFile.setEnabled(true);
         } catch (IOException e1) {
             // TODO Auto-generated catch block
             e1.printStackTrace();
